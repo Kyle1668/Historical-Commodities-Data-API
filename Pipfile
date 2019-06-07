@@ -17,6 +17,7 @@ psycopg2 = "*"
 flask-restful = "*"
 jinja2 = "*"
 autopep8 = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.6"
