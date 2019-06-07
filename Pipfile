@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+autopep8 = "*"
+pylint = "*"
+
+[packages]
+flask = "*"
+requests = "*"
+beautifulsoup4 = "*"
+numpy = "*"
+gunicorn = "*"
+psycopg2 = "*"
+flask-restful = "*"
+jinja2 = "*"
+autopep8 = "*"
+
+[requires]
+python_version = "3.6"
