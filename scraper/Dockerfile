@@ -3,7 +3,6 @@ FROM joyzoursky/python-chromedriver:3.6-alpine3.7-selenium
 WORKDIR /usr/src/historical_commodities_web_scraper
 COPY . /usr/src/historical_commodities_web_scraper
 
-ENV PYTHONPATH="/usr/src/historical_commodities_web_scraper"
 ENV PATH="${PATH};/usr/src/historical_commodities_web_scraper/drivers"
 
 RUN apk update && \
