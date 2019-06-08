@@ -1,7 +1,6 @@
 FROM python:3.6.8-alpine3.9
 
-ENV FLASK_ENV=production \
-    PATH="/root/.local/bin:${PATH}" \
+ENV PATH="/root/.local/bin:${PATH}" \
     PYTHONPATH=/usr/src/historical_commodities_data_api
 
 WORKDIR /usr/src/historical_commodities_data_api

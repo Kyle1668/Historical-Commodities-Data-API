@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  api_server:
+    build: ./api
+    container_name: bdf-challenge-rest-api
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      FLASK_ENV: production
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - database
+
+  web_scraper:
+    build: ./scraper
+    container_name: bdf-challenge-web-scraper
+    depends_on:
+      - database
+
+  database:
+    image: postgres
+    container_name: bdf-challenge-postgress-db
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5430:5432"
