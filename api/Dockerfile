@@ -6,6 +6,7 @@ ENV FLASK_ENV=production \
 
 WORKDIR /usr/src/historical_commodities_data_api
 COPY . /usr/src/historical_commodities_data_api
+COPY ../Pipfile /usr/src/historical_commodities_data_api
 
 RUN pip3 install --upgrade pip
 RUN pip3 install --user pipenv

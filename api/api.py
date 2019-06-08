@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 
-from src.commodities_endpoints import CommoditiesEndpoints
+from api import CommoditiesEndpoints
 
 application = Flask(__name__)
 api = Api(application)
