@@ -10,6 +10,10 @@ class CommoditiesEndpoints(Resource):
 
     def get(self):
         print(request.args)
+
+        if request.args.get("start_date") is None or request.args.get("end_date") is None:
+            return self.missing_query_param_response()
+
         data = self.get_time_series_data(
             postgres_connection,
             request.args.get("start_date"),
@@ -26,8 +30,9 @@ class CommoditiesEndpoints(Resource):
 
         if time_series_data:
             data_result = [{str(data[0]): data[1]} for data in time_series_data]
-            mean_result = np.mean([data[1] for data in time_series_data])
-            variance_result = np.var([data[1] for data in time_series_data])
+            prices_list = [data[1] for data in time_series_data]
+            mean_result = np.mean(prices_list)
+            variance_result = np.var(prices_list)
 
         return jsonify({
             "data": data_result,
@@ -35,11 +40,9 @@ class CommoditiesEndpoints(Resource):
             "variance": variance_result
         })
 
-    def calculate_mean(self, query_results):
-        pass
-
-    def missing_query_param_response(self, parameters):
-        pass
+    def missing_query_param_response(self):
+        json = jsonify({"error": True, "message": "Incorrect or missing query parameters"})
+        return make_response(json, 400)
 
     def incorrect_commodity_type_response(self, wrong_commodity):
         pass
