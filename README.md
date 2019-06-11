@@ -19,12 +19,15 @@ Web Scraper
 - Docker
 - Selenium
 - PostgreSQL
+- Pipenv
 
 ## How To Run
 
 This system used Docker to build and run it's individual components. You will need to have Docker installed on your machine to build this project.
 
-## Steps
+To run services outside of Docker for local development use Pipenv and run `pipenv install` and `pipenv shell` in the project root.
+
+### Steps
 
 Run the following steps in the project root directory.
 
