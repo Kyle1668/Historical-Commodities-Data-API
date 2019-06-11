@@ -5,11 +5,21 @@ ENV PATH="/root/.local/bin:${PATH}" \
 
 WORKDIR /usr/src/historical_commodities_data_api
 COPY . /usr/src/historical_commodities_data_api
-COPY ../Pipfile /usr/src/historical_commodities_data_api
+
+RUN apk update && \
+    apk add --virtual build-deps gcc python-dev musl-dev && \
+    apk add postgresql-dev
 
 RUN pip3 install --upgrade pip
-RUN pip3 install --user pipenv
-RUN pipenv install
+RUN pip3 install --user flask \
+                        requests \
+                        beautifulsoup4 \
+                        numpy \
+                        gunicorn \
+                        psycopg2 \
+                        flask-restful \
+                        jinja2 \
+                        python-dateutil
 
 EXPOSE 8080
 
