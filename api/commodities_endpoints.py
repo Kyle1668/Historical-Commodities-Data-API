@@ -1,20 +1,35 @@
 from psycopg2 import Error
 from flask import jsonify
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from database import postgres_connection
+from flask import request, make_response
 
 
 class CommoditiesEndpoints(Resource):
+
     def get(self):
-        data = self.get_time_series_data(postgres_connection, "2019-06-03", "2019-06-11", "gold")
+        print(request.args)
+        data = self.get_time_series_data(
+            postgres_connection,
+            request.args.get("start_date"),
+            request.args.get("end_date"),
+            request.args.get("commodity_type"),
+        )
 
         return self.success_result(data)
 
     def success_result(self, time_series_data):
+        data_result = None
+        mean_reuslt = None
+        variance_reuslt = None
+
+        if time_series_data:
+            data_result = [{str(data[0]): data[1]} for data in time_series_data]
+
         return jsonify({
-            "data": [{str(data[0]): data[1]} for data in time_series_data],
-            "mean": "",
-            "variance": ""
+            "data": data_result,
+            "mean": mean_reuslt,
+            "variance": variance_reuslt
         })
 
     def calculate_mean(self, query_results):
@@ -36,7 +51,12 @@ class CommoditiesEndpoints(Resource):
 
         try:
             cursor.execute(query)
-            return cursor.fetchall()
+            result = cursor.fetchall()
+
+            if result:
+                return result
+            else:
+                return None
         except Error:
             print("ERROR IN SELECT")
             pass
