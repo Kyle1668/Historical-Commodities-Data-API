@@ -11,7 +11,8 @@ services:
       FLASK_ENV: production
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
     depends_on:
       - web_scraper
 
