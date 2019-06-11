@@ -8,9 +8,21 @@ This project pulls data from online gold and silver data, stores it in a relatio
 
 Web Scraper
 
-- Selenium based Docker container that runs a Python script which pulls data from these two sources.
+- Selenium based Docker container that runs a Python script which pulls data from these two sources. [Gold](https://www.investing.com/commodities/gold-historical-data) | [Silver](https://www.investing.com/commodities/silver-historical-data)
 - Postgress Database with tables **Gold** and **Silver**.
-- Flask REST API that reads from Postgres
+- Flask REST API that reads from Postgres.
+
+## API Schema
+
+**Port**: 8080
+
+**Path**: HOST:8080/commodity
+
+**Query Parameters**:
+
+- start_date - required (iso format like 2017-05-10)
+- end_date - required (iso format like 2017-05-22)
+- commodity_type - required (gold, silver)
 
 ## Technologies
 
