@@ -11,17 +11,24 @@ services:
       FLASK_ENV: production
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PASSWORD}
     depends_on:
-      - database
+      - web_scraper
 
   web_scraper:
     build: ./scraper
     container_name: bdf-challenge-web-scraper
+    environment:
+      ENV: production
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
     depends_on:
       - database
 
   database:
-    image: postgres
+    image: postgres:11.3-alpine
     container_name: bdf-challenge-postgress-db
     restart: always
     env_file: .env
@@ -30,3 +37,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5430:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
