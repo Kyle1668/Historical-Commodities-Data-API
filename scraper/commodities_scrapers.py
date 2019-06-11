@@ -1,5 +1,9 @@
+import os
+import psycopg2
 from pprint import pprint
+from datetime import datetime
 from selenium import webdriver
+from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 
 
@@ -39,11 +43,82 @@ def get_commodity_data(raw_table, commodity):
     return total_derived_daily_commodity_data
 
 
-def upload_data_to_postgres(derived_commodity_data):
-    pass
+def init_db_connection():
+    pg_user = os.environ["POSTGRES_USER"]
+    pg_pass = os.environ["POSTGRES_PASSWORD"]
+    pg_host = os.environ["POSTGRES_HOST"]
+    pg_port = os.environ["POSTGRES_PORT"]
+    return psycopg2.connect(
+        dbname="postgres",
+        host=pg_host,
+        port=pg_port,
+        user=pg_user,
+        password=pg_pass
+    )
+
+
+def create_commodity_table(pg_db_connection, commodity_name):
+    cursor = pg_db_connection.cursor()
+    try:
+        query = """
+                CREATE TABLE %s (
+                    date DATE,
+                    price FLOAT,
+                    open FLOAT,
+                    high FLOAT,
+                    low FLOAT,
+                    volume FLOAT,
+                    change FLOAT,
+                    PRIMARY KEY (date)
+                );
+            """ % commodity_name
+        cursor.execute(query)
+    except psycopg2.Error:
+        print("Unable To Create Table: Likely already exists.")
+
+    pg_db_connection.commit()
+    cursor.close()
+
+
+def upload_data_to_postgres(pg_db_connection, derived_commodity_data):
+    commodity = derived_commodity_data["commodity"]
+    cursor = pg_db_connection.cursor()
+
+    try:
+        date_object = datetime.strptime(derived_commodity_data["date"], "%b %d, %Y")
+        formatted_volume = 0
+
+        if derived_commodity_data["volume"] != "-":
+            formatted_volume = float(derived_commodity_data["volume"].strip('K')) * 1000
+
+        formatted_change = float(derived_commodity_data["change"].strip('%')) / 100
+
+        query = """
+            INSERT INTO %s (date, price, open, high, low, volume, change)
+            VALUES ('%s', %s, %s, %s, %s, %s, %s);
+        """ % (
+            commodity,
+            date_object.date().isoformat(),
+            float(derived_commodity_data["price"].replace(",", "")),
+            float(derived_commodity_data["open"].replace(",", "")),
+            float(derived_commodity_data["high"].replace(",", "")),
+            float(derived_commodity_data["low"].replace(",", "")),
+            formatted_volume,
+            formatted_change,
+        )
+        cursor.execute(query)
+    except psycopg2.Error:
+        pass
+
+    pg_db_connection.commit()
+    cursor.close()
 
 
 if __name__ == "__main__":
+    if os.environ["ENV"] == "production":
+        load_dotenv()
+
+    db_connection = init_db_connection()
     urls = [("https://www.investing.com/commodities/gold-historical-data", "gold"),
             ("https://www.investing.com/commodities/silver-historical-data", "silver")]
 
@@ -60,4 +135,8 @@ if __name__ == "__main__":
         source_code = elem.get_attribute("innerHTML")
         soup = BeautifulSoup(source_code, 'html.parser')
         table = soup.find("table", {"id": "curr_table"})
-        pprint(get_commodity_data(table, link[1]))
+
+        create_commodity_table(db_connection, link[1])
+
+        for commodity_list in get_commodity_data(table, link[1]):
+            upload_data_to_postgres(db_connection, commodity_list)

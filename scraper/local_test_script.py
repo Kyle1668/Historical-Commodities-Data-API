@@ -286,29 +286,25 @@ def get_commodity_data(raw_table, commodity):
     return total_derived_daily_commodity_data
 
 
-def upload_data_to_postgres(derived_commodity_data):
-    # if len(derived_commodity_data) > 0:
-    #     raise Exception("def upload_data_to_postgres: derived_commodity_data is empty")
-
+def init_db_connection():
     pg_user = os.environ["POSTGRES_USER"]
     pg_pass = os.environ["POSTGRES_PASSWORD"]
     pg_port = os.environ["POSTGRES_PORT"]
-    commodity = derived_commodity_data["commodity"]
-
-    connection = psycopg2.connect(
+    return psycopg2.connect(
         dbname="postgres",
         host="localhost",
         port=pg_port,
         user=pg_user,
         password=pg_pass
     )
-    cursor = connection.cursor()
-    # connection.set_session(autocommit=True)
 
+
+def create_commodity_table(pg_db_connection, commodity_name):
+    cursor = pg_db_connection.cursor()
     try:
         query = """
                 CREATE TABLE %s (
-                    date date,
+                    date DATE,
                     price FLOAT,
                     open FLOAT,
                     high FLOAT,
@@ -317,25 +313,33 @@ def upload_data_to_postgres(derived_commodity_data):
                     change FLOAT,
                     PRIMARY KEY (date)
                 );
-            """ % commodity
+            """ % commodity_name
         cursor.execute(query)
     except psycopg2.Error:
-        pass
+        print("Unable To Create Table: Likely already exists.")
+
+    pg_db_connection.commit()
+    cursor.close()
+
+def upload_data_to_postgres(pg_db_connection, derived_commodity_data):
+    # if len(derived_commodity_data) > 0:
+    #     raise Exception("def upload_data_to_postgres: derived_commodity_data is empty")
+
+    commodity = derived_commodity_data["commodity"]
+    cursor = pg_db_connection.cursor()
 
     try:
         date_object = datetime.strptime(derived_commodity_data["date"], "%b %d, %Y")
-        formatted_iso_time = date_object.isoformat().replace("T00:00:00", "")
+        formatted_volume = 0
 
-        if (derived_commodity_data["volume"] != "-"):
+        if derived_commodity_data["volume"] != "-":
             formatted_volume = float(derived_commodity_data["volume"].strip('K')) * 1000
-        else:
-            formatted_volume = None
 
         formatted_change = float(derived_commodity_data["change"].strip('%')) / 100
 
         query = """
             INSERT INTO %s (date, price, open, high, low, volume, change)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
+            VALUES ('%s', %s, %s, %s, %s, %s, %s);
         """ % (
             commodity,
             date_object.date().isoformat(),
@@ -350,13 +354,15 @@ def upload_data_to_postgres(derived_commodity_data):
     except psycopg2.Error:
         pass
 
-    cursor.close()
+    pg_db_connection.commit()
     cursor.close()
 
 
 if __name__ == "__main__":
-    load_dotenv()
+    if True:
+        load_dotenv()
 
+    db_connection = init_db_connection()
     urls = [("https://www.investing.com/commodities/gold-historical-data", "gold"),
             ("https://www.investing.com/commodities/silver-historical-data", "silver")]
 
@@ -364,7 +370,11 @@ if __name__ == "__main__":
         # soup = BeautifulSoup(link[0], 'html.parser')
         soup = BeautifulSoup(html, 'html.parser')
         table = soup.find("table", {"id": "curr_table"})
-        # pprint(get_commodity_data(table, link[1]))
+        pprint(get_commodity_data(table, link[1]))
+
+        create_commodity_table(db_connection, link[1])
 
         for commodity_list in get_commodity_data(table, link[1]):
-            upload_data_to_postgres(commodity_list)
+            upload_data_to_postgres(db_connection, commodity_list)
+
+    db_connection.close()

@@ -13,6 +13,7 @@ RUN pip3 install requests \
                  beautifulsoup4 \
                  psycopg2 \
                  selenium \
-                 webdriver-manager
+                 webdriver-manager \
+                 python-dotenv
 
 CMD ["python3", "commodities_scrapers.py"]
