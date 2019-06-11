@@ -1,3 +1,4 @@
+import numpy as np
 from psycopg2 import Error
 from flask import jsonify
 from flask_restful import Resource, reqparse
@@ -20,16 +21,18 @@ class CommoditiesEndpoints(Resource):
 
     def success_result(self, time_series_data):
         data_result = None
-        mean_reuslt = None
-        variance_reuslt = None
+        mean_result = None
+        variance_result = None
 
         if time_series_data:
             data_result = [{str(data[0]): data[1]} for data in time_series_data]
+            mean_result = np.mean([data[1] for data in time_series_data])
+            variance_result = np.var([data[1] for data in time_series_data])
 
         return jsonify({
             "data": data_result,
-            "mean": mean_reuslt,
-            "variance": variance_reuslt
+            "mean": mean_result,
+            "variance": variance_result
         })
 
     def calculate_mean(self, query_results):
