@@ -19,7 +19,8 @@ RUN pip3 install --user flask \
                         psycopg2 \
                         flask-restful \
                         jinja2 \
-                        python-dateutil
+                        python-dateutil \
+                        python-dotenv
 
 EXPOSE 8080
 
