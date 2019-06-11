@@ -23,4 +23,4 @@ RUN pip3 install --user flask \
 
 EXPOSE 8080
 
-CMD [ "pipenv", "run", "gunicorn", "-b", "0.0.0.0:8080", "wsgi" ]
+CMD [ "python", "api.py" ]
