@@ -37,8 +37,9 @@ def get_commodity_data(raw_table, commodity):
         if bool(derived_day_data):
             derived_day_data["commodity"] = commodity
             total_derived_daily_commodity_data.append(derived_day_data)
+            print("Row Parsed: %s" % derived_day_data)
         else:
-            print("WARNING: No commodity data found in this row (td).")
+            print("WARNING: No commodity data found in this row (td). Likely table head.")
 
     return total_derived_daily_commodity_data
 
@@ -48,13 +49,22 @@ def init_db_connection():
     pg_pass = os.environ["POSTGRES_PASSWORD"]
     pg_host = os.environ["POSTGRES_HOST"]
     pg_port = os.environ["POSTGRES_PORT"]
-    return psycopg2.connect(
-        dbname="postgres",
-        host=pg_host,
-        port=pg_port,
-        user=pg_user,
-        password=pg_pass
-    )
+    connection = None
+
+    try:
+        connection = psycopg2.connect(
+            dbname="postgres",
+            host=pg_host,
+            port=pg_port,
+            user=pg_user,
+            password=pg_pass
+        )
+    except psycopg2.Error:
+        print("Error: Unable to connection to database")
+        print("ENV: %s" % os.environ)
+        exit(1)
+
+    return connection
 
 
 def create_commodity_table(pg_db_connection, commodity_name):
@@ -73,6 +83,7 @@ def create_commodity_table(pg_db_connection, commodity_name):
                 );
             """ % commodity_name
         cursor.execute(query)
+        print("Table Created: %s" % commodity_name)
     except psycopg2.Error:
         print("Unable To Create Table: Likely already exists.")
 
